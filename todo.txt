@@ -1,0 +1,6 @@
+1. Migration
+2. Shcema
+3. webSocet (Shared worker) 
+4. Docker
+5. Image mime type
+6. bycript, UUID
