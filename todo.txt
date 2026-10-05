@@ -1,4 +1,4 @@
-1. Migration
+1. Migration ✅
 2. Shcema
 3. webSocet (Shared worker) 
 4. Docker
