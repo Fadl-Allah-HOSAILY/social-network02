@@ -3,4 +3,4 @@
 3. webSocet (Shared worker) 
 4. Docker
 5. Image mime type
-6. bycript, UUID
+6. bycript, UUID 
