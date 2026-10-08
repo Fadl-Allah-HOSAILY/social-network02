@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
     birthday TEXT NOT NULL,
+    avatar TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

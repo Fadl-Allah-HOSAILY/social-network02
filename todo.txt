@@ -4,3 +4,7 @@
 4. Docker
 5. Image mime type
 6. bycript, UUID 
+
+A revoir :
+
+1. service => auth.go => regex
