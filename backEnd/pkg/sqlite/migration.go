@@ -9,7 +9,7 @@ import (
 
 func Migrate(db *sql.DB) error {
 	migrations := &migrate.FileMigrationSource{
-		Dir: "pkg/db/migrations/sqlite",
+		Dir: "pkg/migrations/sqlite",
 	}
 
 	mg, err := migrate.Exec(db, "sqlite3", migrations, migrate.Up)
@@ -20,3 +20,4 @@ func Migrate(db *sql.DB) error {
 	fmt.Println("migrations applied:", mg)
 	return nil
 }
+

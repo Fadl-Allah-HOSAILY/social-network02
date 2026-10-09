@@ -7,7 +7,7 @@ import (
 )
 
 func OpenDb() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", "social-network.db")
+	db, err := sql.Open("sqlite3", "pkg/database/social-network.db?_foreign_keys=on&_journal_mode=WAL")
 
 	if err != nil {
 		return nil, err

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"backend/pkg/db/sqlite"
+	"backend/pkg/sqlite"
 	"backend/route"
 	"log"
 	"net/http"

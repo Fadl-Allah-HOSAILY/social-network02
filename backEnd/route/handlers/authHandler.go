@@ -74,17 +74,26 @@ func RegisterHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		Avatar:    path,
 	}
 
-	if err := service.Register(db, userData); err != nil {
-
+	sessionID, err := service.Register(db, userData)
+	if err != nil {
 		response.Code = http.StatusBadRequest
 		response.Data = nil
 		response.Success = false
 		response.PopUp = err.Error()
 
 		WriteJSONResponse(w, response)
-
 		return
 	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_id",
+		Value:    sessionID,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Now().Add(24 * time.Hour),
+	})
 
 	response.Code = http.StatusCreated
 	response.Data = nil
