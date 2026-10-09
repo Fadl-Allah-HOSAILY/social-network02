@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
     last_name TEXT NOT NULL,
     nickname TEXT UNIQUE,
     about_me TEXT,
-    profile_visibility TEXT NOT NULL CHECK (profile_visibility IN ('public', 'private')),
+    profile_visibility TEXT NOT NULL DEFAULT 'public' CHECK (profile_visibility IN ('public', 'private')),
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
     birthday TEXT NOT NULL,

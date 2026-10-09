@@ -2,17 +2,21 @@ package service
 
 import (
 	"backend/model"
+	"backend/repos"
+	"database/sql"
 	"errors"
 	"regexp"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
-func Register(userData model.RegisterRequest) error {
+func Register(db *sql.DB, userData model.RegisterRequest) error {
 
-	letterRegex := regexp.MustCompile(`[^\p{L}]`)
+	letterRegex := regexp.MustCompile(`[^\p{L}-]`)
 	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-	passwordRegex := regexp.MustCompile(`[!@#$%^&*]`)
+	passwordRegex := regexp.MustCompile(`[!@#$%^&*_.-]`)
 	numberRegex := regexp.MustCompile(`[0-9]`)
 
 	firstName := strings.TrimSpace(userData.FirstName)
@@ -48,10 +52,17 @@ func Register(userData model.RegisterRequest) error {
 	} else if len(password) > 30 {
 		return errors.New("Password should be less than 30 characters")
 	} else if !passwordRegex.MatchString(password) {
-		return errors.New("Special Character Required")
+		return errors.New("Special Character Required in the Passeword")
 	} else if !numberRegex.MatchString(password) {
 		return errors.New("Numbers Required")
 	}
+
+	hashedPwd, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return errors.New("Failed to secure password")
+	}
+
+	userData.Password = string(hashedPwd)
 
 	if userData.Birthday.IsZero() || userData.Birthday.After(time.Now()) {
 		return errors.New("Birthday Not Valid")
@@ -71,6 +82,11 @@ func Register(userData model.RegisterRequest) error {
 
 	if len(aboutMe) > 500 {
 		return errors.New("aboutMe should be less than 500 characters")
+	}
+
+	err = repos.CreateUser(db, userData)
+	if err != nil {
+		return err
 	}
 
 	return nil

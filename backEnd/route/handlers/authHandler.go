@@ -3,11 +3,12 @@ package handlers
 import (
 	"backend/model"
 	"backend/service"
+	"database/sql"
 	"net/http"
 	"time"
 )
 
-func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+func RegisterHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	var userData model.RegisterRequest
 	var response model.APIResponse
@@ -73,7 +74,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		Avatar:    path,
 	}
 
-	if err := service.Register(userData); err != nil {
+	if err := service.Register(db, userData); err != nil {
 
 		response.Code = http.StatusBadRequest
 		response.Data = nil
@@ -84,4 +85,11 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+
+	response.Code = http.StatusCreated
+	response.Data = nil
+	response.Success = true
+	response.PopUp = "Registration successful"
+
+	WriteJSONResponse(w, response)
 }

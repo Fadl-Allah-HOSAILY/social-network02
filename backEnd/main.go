@@ -17,7 +17,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	mux := route.NewRouter()
+	mux := route.NewRouter(db)
 
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		log.Fatal(err)
