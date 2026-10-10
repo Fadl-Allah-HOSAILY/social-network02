@@ -4,10 +4,14 @@ import (
 	"backend/model"
 	"backend/repos"
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+var ErrSessionExpired = errors.New("session expired")
+var ErrSessionNotFound = errors.New("session not found")
 
 func CreateSession(db *sql.DB, userID int64) (string, error) {
 
@@ -25,4 +29,22 @@ func CreateSession(db *sql.DB, userID int64) (string, error) {
 	}
 
 	return sessionID, nil
+}
+
+func CheckSession(db *sql.DB, sessionID string) (model.Session, error) {
+	session, err := repos.GetSession(db, sessionID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return model.Session{}, ErrSessionNotFound
+		}
+
+		return model.Session{}, err
+	}
+
+	if !session.ExpiredAt.After(time.Now()) {
+		return model.Session{}, ErrSessionExpired
+
+	}
+
+	return session, nil
 }
