@@ -4,6 +4,7 @@ import (
 	"backend/model"
 	"backend/service"
 	"database/sql"
+	"errors"
 	"net/http"
 	"time"
 )
@@ -99,6 +100,60 @@ func RegisterHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	response.Data = nil
 	response.Success = true
 	response.PopUp = "Registration successful"
+
+	WriteJSONResponse(w, response)
+}
+
+func LoginHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	var response model.APIResponse
+
+	if r.Method != http.MethodPost {
+		response.Code = http.StatusMethodNotAllowed
+		response.Data = nil
+		response.Success = false
+		response.PopUp = "Invalid Method"
+
+		WriteJSONResponse(w, response)
+
+		return
+	}
+
+	userData := model.LoginRequest{
+		LoginValue: r.FormValue("loginValue"),
+		Password:   r.FormValue("password"),
+	}
+
+	sessionId, err := service.Login(db, userData)
+	if err != nil {
+		if errors.Is(err, service.ErrInvalidCredentials) {
+			response.Code = http.StatusUnauthorized
+			response.PopUp = "Invalid credentials"
+		} else {
+			response.Code = http.StatusInternalServerError
+			response.PopUp = "Internal Server Error"
+		}
+
+		response.Data = nil
+		response.Success = false
+
+		WriteJSONResponse(w, response)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_id",
+		Value:    sessionId,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Now().Add(24 * time.Hour),
+	})
+
+	response.Code = http.StatusOK
+	response.Data = nil
+	response.Success = true
+	response.PopUp = "Login successful"
 
 	WriteJSONResponse(w, response)
 }

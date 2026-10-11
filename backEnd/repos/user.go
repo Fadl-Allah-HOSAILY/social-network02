@@ -22,3 +22,19 @@ func CreateUser(db *sql.DB, user model.RegisterRequest) (int64, error) {
 
 	return userId, nil
 }
+
+func GetUserByLogin(db *sql.DB, loginValue string) (model.User, error) {
+	var user model.User
+
+	row :=  db.QueryRow(`
+		SELECT user_id, email, nickname, password
+		FROM Users
+		WHERE email = ? OR nickname = ?
+	`, loginValue, loginValue)
+
+	err := row.Scan(&user.UserID, &user.Email, &user.Nickname, &user.Password)
+	if err != nil {
+		return model.User{}, err
+	}
+	return user, nil
+}

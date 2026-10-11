@@ -91,3 +91,28 @@ func Register(db *sql.DB, userData model.RegisterRequest) (string, error) {
 
 	return CreateSession(db, userID)
 }
+
+var ErrInvalidCredentials = errors.New("invalid credentials")
+
+func Login(db *sql.DB, loginValue model.LoginRequest) (string, error) {
+	var user model.User
+
+	user, err := repos.GetUserByLogin(db, loginValue.LoginValue)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", ErrInvalidCredentials
+		}
+
+		return "", err
+	}
+
+	err = bcrypt.CompareHashAndPassword(
+		[]byte(user.Password),
+		[]byte(loginValue.Password),
+	)
+	if err != nil {
+		return "", ErrInvalidCredentials
+	}
+
+	return CreateSession(db, int64(user.UserID))
+}
