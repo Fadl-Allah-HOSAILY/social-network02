@@ -3,6 +3,7 @@ package repos
 import (
 	"backend/model"
 	"database/sql"
+	"time"
 )
 
 func CreateUser(db *sql.DB, user model.RegisterRequest) (int64, error) {
@@ -26,7 +27,7 @@ func CreateUser(db *sql.DB, user model.RegisterRequest) (int64, error) {
 func GetUserByLogin(db *sql.DB, loginValue string) (model.User, error) {
 	var user model.User
 
-	row :=  db.QueryRow(`
+	row := db.QueryRow(`
 		SELECT user_id, email, nickname, password
 		FROM Users
 		WHERE email = ? OR nickname = ?
@@ -36,5 +37,32 @@ func GetUserByLogin(db *sql.DB, loginValue string) (model.User, error) {
 	if err != nil {
 		return model.User{}, err
 	}
+	return user, nil
+}
+
+func GetUserByID(db *sql.DB, userID int) (model.User, error) {
+	var user model.User
+	var birthdayString string
+
+	row := db.QueryRow(`
+    SELECT user_id, first_name, last_name, nickname,
+           avatar, about_me, profile_visibility, birthday
+    FROM users
+    WHERE user_id = ?
+`, userID)
+
+	err := row.Scan(&user.UserID, &user.FirstName, &user.LastName, &user.Nickname,
+		&user.Avatar, &user.AboutMe, &user.ProfileVisibility, &birthdayString)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	birthday, err := time.Parse("2006-01-02", birthdayString)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	user.Birthday = birthday
+	
 	return user, nil
 }

@@ -2,6 +2,7 @@ package route
 
 import (
 	"backend/route/handlers"
+	"backend/route/middleware"
 	"database/sql"
 	"net/http"
 )
@@ -15,6 +16,11 @@ func NewRouter(db *sql.DB) *http.ServeMux {
 	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		handlers.LoginHandler(db, w, r)
 	})
+	mux.Handle("GET /api/profile/{id}",
+		middleware.AuthMiddleware(db, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handlers.ProfileHandler(db, w, r)
+		})),
+	)
 
 	return mux
 }

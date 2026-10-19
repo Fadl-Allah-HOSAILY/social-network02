@@ -1,3 +1,4 @@
+
 package service
 
 import (
@@ -7,19 +8,22 @@ import (
 	"errors"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid"
 )
 
 var ErrSessionExpired = errors.New("session expired")
 var ErrSessionNotFound = errors.New("session not found")
 
 func CreateSession(db *sql.DB, userID int64) (string, error) {
+	sessionUUID, err := uuid.NewV4()
+	if err != nil {
+		return "", err
+	}
 
-	sessionID := uuid.New().String()
+	sessionID := sessionUUID.String()
 	expiredAt := time.Now().Add(24 * time.Hour)
 
 	var session model.Session
-
 	session.UserID = int(userID)
 	session.SessionID = sessionID
 	session.ExpiredAt = expiredAt
@@ -43,7 +47,6 @@ func CheckSession(db *sql.DB, sessionID string) (model.Session, error) {
 
 	if !session.ExpiredAt.After(time.Now()) {
 		return model.Session{}, ErrSessionExpired
-
 	}
 
 	return session, nil

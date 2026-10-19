@@ -1,3 +1,4 @@
+
 package service
 
 import (
@@ -10,11 +11,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid"
 )
 
 func CheckImageExtension(fileName string) bool {
 	extension := strings.ToLower(filepath.Ext(fileName))
+
 	switch extension {
 	case ".jpg", ".jpeg", ".png", ".gif":
 		return true
@@ -25,14 +27,17 @@ func CheckImageExtension(fileName string) bool {
 
 func CheckImageContent(file io.ReadSeeker) (bool, error) {
 	buffer := make([]byte, 512)
+
 	_, err := file.Read(buffer)
 	if err != nil && err != io.EOF {
 		return false, err
 	}
+
 	_, err = file.Seek(0, 0)
 	if err != nil {
 		return false, err
 	}
+
 	contentType := http.DetectContentType(buffer)
 	return strings.HasPrefix(contentType, "image/"), nil
 }
@@ -45,31 +50,35 @@ func ImageTreatment(file multipart.File, header *multipart.FileHeader) (string, 
 	defer file.Close()
 
 	if !CheckImageExtension(header.Filename) {
-		return "", errors.New("Extension not allowed")
+		return "", errors.New("extension not allowed")
 	}
 
 	const maxSize = 5 << 20
 
 	if header.Size > maxSize {
-		return "", errors.New("Image too big")
+		return "", errors.New("image too big")
 	}
 
 	isImage, err := CheckImageContent(file)
 	if err != nil {
 		return "", err
 	}
+
 	if !isImage {
-		return "", errors.New("Not an Image")
+		return "", errors.New("not an image")
 	}
 
-	err = os.MkdirAll("uploads", os.ModePerm)
+	if err := os.MkdirAll("uploads", os.ModePerm); err != nil {
+		return "", err
+	}
+
+	uniqueName, err := uuid.NewV4()
 	if err != nil {
 		return "", err
 	}
 
-	unicName := uuid.New().String()
 	ext := strings.ToLower(filepath.Ext(header.Filename))
-	fileName := fmt.Sprintf("%s%s", unicName, ext)
+	fileName := fmt.Sprintf("%s%s", uniqueName.String(), ext)
 	imagePath := filepath.Join("uploads", fileName)
 
 	destination, err := os.Create(imagePath)
@@ -78,7 +87,7 @@ func ImageTreatment(file multipart.File, header *multipart.FileHeader) (string, 
 	}
 	defer destination.Close()
 
-	if _, err = io.Copy(destination, file); err != nil {
+	if _, err := io.Copy(destination, file); err != nil {
 		return "", err
 	}
 

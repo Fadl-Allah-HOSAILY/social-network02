@@ -20,4 +20,3 @@ func Migrate(db *sql.DB) error {
 	fmt.Println("migrations applied:", mg)
 	return nil
 }
-

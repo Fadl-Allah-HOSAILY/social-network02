@@ -1,0 +1,50 @@
+$kind: http-request
+name: http://localhost:8080/register
+description: ""
+url: http://localhost:8080/register
+method: POST
+body:
+  type: formdata
+  content:
+    - type: text
+      key: firstName
+      value: Soufyane
+      description: ""
+      disabled: false
+    - type: text
+      key: lastName
+      value: Nessakh
+      description: ""
+      disabled: false
+    - type: text
+      key: nickname
+      value: Souf
+      description: ""
+      disabled: false
+    - type: text
+      key: aboutMe
+      value: Hi, i am nessakh, i love messi
+      description: ""
+      disabled: false
+    - type: text
+      key: email
+      value: soufiane.nessakh20@gmail.com
+      description: ""
+      disabled: false
+    - type: text
+      key: password
+      value: messi_1010
+      description: ""
+      disabled: false
+    - type: text
+      key: birthday
+      value: 2000-02-14
+      description: ""
+      disabled: false
+    - type: file
+      key: avatar
+      src:
+        - /C:/Users/Legion/Downloads/VibeLoop-removebg-preview.png
+      description: ""
+      disabled: false
+order: 1000
