@@ -39,7 +39,7 @@ func FollowExists(db *sql.DB, followerID int, followingID int) (bool, error) {
 
 var ErrFollowNotFound = errors.New("follow relationship not found")
 
-func DeleteFollow(db *sql.DB, followerID int, followingID int) error {
+func Unfollow(db *sql.DB, followerID int, followingID int) error {
 	res, err := db.Exec(`
 	DELETE FROM followers
 	WHERE follower_id = ? AND following_id = ?

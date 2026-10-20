@@ -10,7 +10,6 @@ import (
 var ErrCannotFollowSelf = errors.New("cannot follow yourself")
 var ErrFollowerNotFound = errors.New("cannot Find Follower")
 var ErrFollowingNotFound = errors.New("cannot Find Following")
-var ErrFollowExist = errors.New("follow already exists")
 
 func FollowUser(db *sql.DB, followerID int, followingID int) error {
 	if followerID == followingID {
@@ -41,7 +40,11 @@ func FollowUser(db *sql.DB, followerID int, followingID int) error {
 		return err
 	}
 	if follows {
-		return ErrFollowExist
+		err = repos.Unfollow(db, followerID, followingID)
+		if err != nil {
+			return err
+		}
+		return nil
 	}
 
 	if following.ProfileVisibility == "public" {
