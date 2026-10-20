@@ -60,7 +60,7 @@ func FollowHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = service.FollowUser(db, followerID, followingID)
+	action, err := service.FollowUser(db, followerID, followingID)
 	if err != nil {
 		switch {
 		case errors.Is(err, service.ErrCannotFollowSelf):
@@ -87,7 +87,12 @@ func FollowHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	response.Code = http.StatusOK
 	response.Data = nil
 	response.Success = true
-	response.PopUp = "Success"
+
+	if action == "followed" {
+		response.PopUp = "Followed successfully"
+	} else {
+		response.PopUp = "Unfollowed successfully"
+	}
 
 	WriteJSONResponse(w, response)
 }
