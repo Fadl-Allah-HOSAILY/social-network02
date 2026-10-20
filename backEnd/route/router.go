@@ -21,6 +21,11 @@ func NewRouter(db *sql.DB) *http.ServeMux {
 			handlers.ProfileHandler(db, w, r)
 		})),
 	)
+	mux.Handle("POST /api/follow/{id}",
+		middleware.AuthMiddleware(db, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handlers.FollowHandler(db, w, r)
+		})),
+	)
 
 	return mux
 }
