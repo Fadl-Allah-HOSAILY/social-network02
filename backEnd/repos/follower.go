@@ -16,3 +16,20 @@ func CreateFollow(db *sql.DB, followerID int, followingID int, status string) er
 	return nil
 }
 
+func FollowExists(db *sql.DB, followerID int, followingID int) (bool, error) {
+	row := db.QueryRow(`
+	SELECT EXISTS(
+    SELECT 1
+    FROM followers
+    WHERE follower_id = ? AND following_id = ?
+	);
+	`, followerID, followingID)
+
+	var exists bool
+	err := row.Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
+}
