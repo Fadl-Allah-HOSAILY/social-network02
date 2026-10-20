@@ -1,3 +1,4 @@
+
 package service
 
 import (
@@ -11,9 +12,9 @@ var ErrCannotFollowSelf = errors.New("cannot follow yourself")
 var ErrFollowerNotFound = errors.New("cannot Find Follower")
 var ErrFollowingNotFound = errors.New("cannot Find Following")
 
-func FollowUser(db *sql.DB, followerID int, followingID int) error {
+func FollowUser(db *sql.DB, followerID int, followingID int) (string, error) {
 	if followerID == followingID {
-		return ErrCannotFollowSelf
+		return "", ErrCannotFollowSelf
 	}
 
 	var follower model.User
@@ -22,42 +23,41 @@ func FollowUser(db *sql.DB, followerID int, followingID int) error {
 	follower, err := repos.GetUserByID(db, followerID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return ErrFollowerNotFound
+			return "", ErrFollowerNotFound
 		}
-		return err
+		return "", err
 	}
 
 	following, err = repos.GetUserByID(db, followingID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return ErrFollowingNotFound
+			return "", ErrFollowingNotFound
 		}
-		return err
+		return "", err
 	}
 
 	follows, err := repos.FollowExists(db, followerID, followingID)
 	if err != nil {
-		return err
+		return "", err
 	}
+
 	if follows {
 		err = repos.Unfollow(db, followerID, followingID)
 		if err != nil {
-			return err
+			return "", err
 		}
-		return nil
+		return "unfollowed", nil
 	}
 
+	status := "pending"
 	if following.ProfileVisibility == "public" {
-		err = repos.CreateFollow(db, follower.UserID, following.UserID, "accepted")
-		if err != nil {
-			return err
-		}
-	} else {
-		err = repos.CreateFollow(db, follower.UserID, following.UserID, "pending")
-		if err != nil {
-			return err
-		}
+		status = "accepted"
 	}
 
-	return nil
+	err = repos.CreateFollow(db, follower.UserID, following.UserID, status)
+	if err != nil {
+		return "", err
+	}
+
+	return "followed", nil
 }
