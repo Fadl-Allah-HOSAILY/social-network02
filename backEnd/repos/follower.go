@@ -1,6 +1,9 @@
 package repos
 
-import "database/sql"
+import (
+	"database/sql"
+	"errors"
+)
 
 func CreateFollow(db *sql.DB, followerID int, followingID int, status string) error {
 
@@ -32,4 +35,27 @@ func FollowExists(db *sql.DB, followerID int, followingID int) (bool, error) {
 	}
 
 	return exists, nil
+}
+
+var ErrFollowNotFound = errors.New("follow relationship not found")
+
+func DeleteFollow(db *sql.DB, followerID int, followingID int) error {
+	res, err := db.Exec(`
+	DELETE FROM followers
+	WHERE follower_id = ? AND following_id = ?
+	`, followerID, followingID)
+
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrFollowNotFound
+	}
+
+	return nil
 }
