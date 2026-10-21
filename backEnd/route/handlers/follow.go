@@ -5,6 +5,7 @@ import (
 	"backend/pkg/authcontext"
 	"backend/service"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -162,6 +163,89 @@ func FollowFetchHandler(db *sql.DB, w http.ResponseWriter, r *http.Request, acti
 	response.Data = users
 	response.Success = true
 	response.PopUp = "fitched successfully"
+
+	WriteJSONResponse(w, response)
+}
+
+func UpdateFollowStatus(db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	var response model.APIResponse
+
+	if r.Method != http.MethodPost {
+		response.Code = http.StatusMethodNotAllowed
+		response.Data = nil
+		response.Success = false
+		response.PopUp = "Invalid Method"
+
+		WriteJSONResponse(w, response)
+
+		return
+	}
+
+	strId := r.PathValue("id")
+	followerID, err := strconv.Atoi(strId)
+	if err != nil {
+		response.Code = http.StatusBadRequest
+		response.Data = nil
+		response.Success = false
+		response.PopUp = "Invalid id"
+
+		WriteJSONResponse(w, response)
+
+		return
+	}
+
+	if followerID <= 0 {
+		response.Code = http.StatusBadRequest
+		response.Data = nil
+		response.Success = false
+		response.PopUp = "Bad Request"
+
+		WriteJSONResponse(w, response)
+
+		return
+	}
+
+	followingID, ok := authcontext.GetUserID(r.Context())
+	if !ok {
+		response.Code = http.StatusUnauthorized
+		response.Data = nil
+		response.Success = false
+		response.PopUp = "Unauthorized"
+
+		WriteJSONResponse(w, response)
+
+		return
+	}
+
+	var request model.FollowStatusRequest
+	err = json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		response.Code = http.StatusBadRequest
+		response.Data = nil
+		response.Success = false
+		response.PopUp = "Bad Request"
+
+		WriteJSONResponse(w, response)
+
+		return
+	}
+
+	res, err := service.UpdateFollowStatus(db, followerID, followingID, request.Status)
+	if err != nil {
+		response.Code = http.StatusBadRequest
+		response.Data = nil
+		response.Success = false
+		response.PopUp = "Bad Request"
+
+		WriteJSONResponse(w, response)
+
+		return
+	}
+
+	response.Code = http.StatusAccepted
+	response.Data = nil
+	response.Success = true
+	response.PopUp = res
 
 	WriteJSONResponse(w, response)
 }
