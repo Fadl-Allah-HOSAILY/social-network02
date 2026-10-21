@@ -61,7 +61,7 @@ func Unfollow(db *sql.DB, followerID int, followingID int) error {
 	return nil
 }
 
-func FetchFollow(db *sql.DB,action string, userID int) ([]model.User, error) {
+func FetchFollow(db *sql.DB, action string, userID int) ([]model.User, error) {
 	var users []model.User
 	switch action {
 
@@ -82,10 +82,10 @@ func FetchFollow(db *sql.DB,action string, userID int) ([]model.User, error) {
 		if err != nil {
 			return []model.User{}, err
 		}
-		
+
 		defer rows.Close()
 
-		for rows.Next(){
+		for rows.Next() {
 			var user model.User
 			err := rows.Scan(&user.UserID, &user.FirstName, &user.LastName, &user.Nickname, &user.Avatar)
 			if err != nil {
@@ -97,7 +97,7 @@ func FetchFollow(db *sql.DB,action string, userID int) ([]model.User, error) {
 		if err != nil {
 			return []model.User{}, err
 		}
-		
+
 	case "following":
 		rows, err := db.Query(`
 		SELECT 
@@ -115,10 +115,10 @@ func FetchFollow(db *sql.DB,action string, userID int) ([]model.User, error) {
 		if err != nil {
 			return []model.User{}, err
 		}
-		
+
 		defer rows.Close()
 
-		for rows.Next(){
+		for rows.Next() {
 			var user model.User
 			err := rows.Scan(&user.UserID, &user.FirstName, &user.LastName, &user.Nickname, &user.Avatar)
 			if err != nil {
@@ -132,8 +132,32 @@ func FetchFollow(db *sql.DB,action string, userID int) ([]model.User, error) {
 		}
 
 	default:
-	return []model.User{}, errors.New("invalid action")
+		return []model.User{}, errors.New("invalid action")
 	}
 
-	return users, nil	
+	return users, nil
+}
+
+func UpdateFollowStatus(db *sql.DB, followerID int, followingID int, status string) error {
+	res, err := db.Exec(`
+	UPDATE Followers
+	SET status = ?
+	WHERE follower_id = ?
+	AND following_id = ?
+	AND status = 'pending';
+	`,status, followerID, followingID)
+
+	if err != nil {
+		return err
+	}
+
+	rowsUpdated, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsUpdated == 0 {
+    return ErrFollowNotFound
+}
+	
+	return nil 
 }
