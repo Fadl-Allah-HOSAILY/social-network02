@@ -11,6 +11,7 @@ import (
 var ErrCannotFollowSelf = errors.New("cannot follow yourself")
 var ErrFollowerNotFound = errors.New("cannot Find Follower")
 var ErrFollowingNotFound = errors.New("cannot Find Following")
+var ErrAction = errors.New("invalid action")
 
 func FollowUser(db *sql.DB, followerID int, followingID int) (string, error) {
 	if followerID == followingID {
@@ -60,4 +61,26 @@ func FollowUser(db *sql.DB, followerID int, followingID int) (string, error) {
 	}
 
 	return "followed", nil
+}
+
+func FollowFetch(db *sql.DB, userID int, action string) ([]model.User, error) {
+	if action != "followers" && action != "following" {
+		return []model.User{}, ErrAction
+	} 
+
+	user, err := repos.GetUserByID(db, userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return []model.User{}, ErrFollowerNotFound
+		}
+		return []model.User{}, err
+	}
+
+	var users []model.User
+	users, err = repos.FetchFollow(db, action, user.UserID)
+	if err != nil {
+		return []model.User{}, err
+	}
+
+	return users, nil
 }

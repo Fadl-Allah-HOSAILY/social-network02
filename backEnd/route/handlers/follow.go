@@ -96,3 +96,72 @@ func FollowHandler(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 
 	WriteJSONResponse(w, response)
 }
+
+func FollowFetchHandler(db *sql.DB, w http.ResponseWriter, r *http.Request, action string) {
+	var response model.APIResponse
+
+	if r.Method != http.MethodGet {
+		response.Code = http.StatusMethodNotAllowed
+		response.Data = nil
+		response.Success = false
+		response.PopUp = "Invalid Method"
+
+		WriteJSONResponse(w, response)
+
+		return
+	}
+
+	strId := r.PathValue("id")
+	userID, err := strconv.Atoi(strId)
+	if err != nil {
+		response.Code = http.StatusBadRequest
+		response.Data = nil
+		response.Success = false
+		response.PopUp = "Invalid id"
+
+		WriteJSONResponse(w, response)
+
+		return
+	}
+
+	if userID <= 0 {
+		response.Code = http.StatusBadRequest
+		response.Data = nil
+		response.Success = false
+		response.PopUp = "Bad Request"
+
+		WriteJSONResponse(w, response)
+
+		return
+	}
+
+	var users []model.User
+	users, err = service.FollowFetch(db, userID, action)
+	if err != nil {
+		switch {
+		case errors.Is(err, service.ErrAction):
+			response.Code = http.StatusBadRequest
+			response.PopUp = "Invalid Action"
+
+		case errors.Is(err, service.ErrFollowerNotFound):
+			response.Code = http.StatusNotFound
+			response.PopUp = "User not found"
+
+		default:
+			response.Code = http.StatusInternalServerError
+			response.PopUp = "Internal Server Error"
+		}
+
+		response.Data = nil
+		response.Success = false
+		WriteJSONResponse(w, response)
+		return
+	}
+
+	response.Code = http.StatusOK
+	response.Data = users
+	response.Success = true
+	response.PopUp = "fitched successfully"
+
+	WriteJSONResponse(w, response)
+}

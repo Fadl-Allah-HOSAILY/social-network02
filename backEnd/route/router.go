@@ -26,6 +26,16 @@ func NewRouter(db *sql.DB) *http.ServeMux {
 			handlers.FollowHandler(db, w, r)
 		})),
 	)
+	mux.Handle("GET /api/followers/{id}",
+		middleware.AuthMiddleware(db, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handlers.FollowFetchHandler(db, w, r, "followers")
+		})),
+	)
+	mux.Handle("GET /api/following/{id}",
+		middleware.AuthMiddleware(db, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handlers.FollowFetchHandler(db, w, r, "following")
+		})),
+	)
 
 	return mux
 }
