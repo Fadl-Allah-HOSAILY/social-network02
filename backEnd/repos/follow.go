@@ -161,3 +161,25 @@ func UpdateFollowStatus(db *sql.DB, followerID int, followingID int, status stri
 	
 	return nil 
 }
+
+func RejectFollowRequest(db *sql.DB, followerID int, followingID int) error {
+	res, err := db.Exec(`
+	DELETE FROM followers
+	WHERE follower_id = ? AND following_id = ?
+	AND status = 'pending'
+	`, followerID, followingID)
+
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrFollowNotFound
+	}
+
+	return nil
+}

@@ -1,4 +1,3 @@
-
 package service
 
 import (
@@ -66,7 +65,7 @@ func FollowUser(db *sql.DB, followerID int, followingID int) (string, error) {
 func FollowFetch(db *sql.DB, userID int, action string) ([]model.User, error) {
 	if action != "followers" && action != "following" {
 		return []model.User{}, ErrAction
-	} 
+	}
 
 	user, err := repos.GetUserByID(db, userID)
 	if err != nil {
@@ -83,4 +82,24 @@ func FollowFetch(db *sql.DB, userID int, action string) ([]model.User, error) {
 	}
 
 	return users, nil
+}
+
+func UpdateFollowStatus(db *sql.DB, followerID int, followingID int, status string) error {
+	switch status {
+	case "accepted":
+		err := repos.UpdateFollowStatus(db, followerID, followingID, status)
+		if err != nil {
+			return err
+		}
+	case "rejected":
+		err := repos.RejectFollowRequest(db, followerID, followingID)
+		if err != nil {
+			return err
+		}
+
+	default:
+		return errors.New("invalid follow status")
+	}
+
+	return nil
 }
