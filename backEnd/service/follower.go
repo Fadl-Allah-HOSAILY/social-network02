@@ -84,7 +84,11 @@ func FollowFetch(db *sql.DB, userID int, action string) ([]model.User, error) {
 	return users, nil
 }
 
-func UpdateFollowStatus(db *sql.DB, followerID int, followingID int, status string) error {
+func UpdateFollowStatus(db *sql.DB, userID int, followerID int, followingID int, status string) error {
+	if userID != followingID {
+		return errors.New("Unauthorized")
+	}
+
 	switch status {
 	case "accepted":
 		err := repos.UpdateFollowStatus(db, followerID, followingID, status)
